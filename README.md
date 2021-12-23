@@ -1,15 +1,15 @@
 # sticklebackREVIEW
 Code and data to reproduce plots in review article of Baltic Sea sticklebacks.
 
-Data for Fig 1 and Fig 2a come from the ICES Baltic International Acoustic Survey (see Olsson et al. 2019 for details). 
+Data for Fig 1 and Fig 2a-c come from the ICES Baltic International Acoustic Survey (see Olsson et al. 2019 for details). 
 
-Data for Fig 2b come from juveniles surveys during the spawning season using underwater detonations (see Eklöf et al. 2020 for details).
+Data for Fig 2d-f come from juveniles surveys during the spawning season using underwater detonations (see Eklöf et al. 2020 for details).
 
-Data for Fig 2c come from sticklebacks caught in the cooling water intake of the Forsmark nuclear power plant on the Swedish coast (see Adill et al. 2018 for details).
+Data for Fig 2g-h come from sticklebacks caught in the cooling water intake of the Forsmark nuclear power plant on the Swedish coast (see Adill et al. 2018 for details).
 
-Data for Fig 2d come from traps set out during the spawning season along the Finnish coast, and were extracted from Candolin and Voigt (2020) using https://apps.automeris.io/wpd/.
+Data for Fig 2i come from traps set out during the spawning season along the Finnish coast, and were extracted from Candolin and Voigt (2020) using https://apps.automeris.io/wpd/.
 
-Data for Fig 2e come from beach seines during the spawning season along the Latvian coast (see Olsson et al. 2015 for details).
+Data for Fig 2j-k come from beach seines during the spawning season along the Latvian coast (see Olsson et al. 2015 for details).
 
 Data for Fig 4 come from juveniles surveys during the spawning season using underwater detonations (see Eklöf et al. 2020 for details).
 
