@@ -277,20 +277,22 @@ dat = BIAS[BIAS$group == "SD25",]
 # fit and check gam model
 gam.mod = gam(biomass_density_tonnes_per_km2 ~ s(year),
               data = dat,
-              sp = 0.01,
+              family = Gamma(link = "log"),
               method = "REML")
 summary(gam.mod)
 gam.check(gam.mod)
 
 # make predictions from gam model
 p = predict(gam.mod, 
-            type = "response",
+            type = "link",
             se.fit = TRUE)
 
+
+
 # add predictions to df, including 95% CI
-dat$pred = p$fit
-dat$ymin = p$fit -  1.96 * p$se.fit
-dat$ymax = p$fit +  1.96 * p$se.fit
+dat$pred = gam.mod$family$linkinv(p$fit)
+dat$ymin = gam.mod$family$linkinv(p$fit - 1.96 * p$se.fit)
+dat$ymax = gam.mod$family$linkinv(p$fit + 1.96 * p$se.fit)
 
 
 fig2a = 
@@ -302,7 +304,7 @@ fig2a =
   geom_line(col = cols[1], size = 0.25) +
   
   # error bars for average densities
-  geom_errorbar(aes(ymin = biomass_density_tonnes_per_km2 - CI, ymax = biomass_density_tonnes_per_km2 + CI), 
+  geom_errorbar(aes(ymin = low_ci, ymax = high_ci), 
                 width = 0, size = 0.25, col = cols[1], alpha = 0.5) +
   
   # line for GAM predictions
@@ -312,7 +314,7 @@ fig2a =
   geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) +
   
   # add label for SD
-  annotate(geom = "text", x = 1993.5, y = 5.4, label = "SD 25", hjust = "left", family = "spec-font", size = 21) + 
+  annotate(geom = "text", x = 1993.5, y = 5.30, label = "SD 25", hjust = "left", family = "spec-font", size = 21) + 
   
   # add p value to plot
   annotate(geom = "text", x = 1993.5, y = 0.2, label = "p = 0.3", hjust = "left", family = "spec-font", size = 18) + 
@@ -324,7 +326,7 @@ fig2a =
   
   # adjust plot limits
   lims( x = c(1993,2020)) +
-  scale_y_continuous(limits=c(0,5.6),oob=squish) +
+  #scale_y_continuous(limits=c(0, 7.3),oob=squish) +
   
   # graphical settings
   theme_bw(base_size = 12) +
@@ -340,20 +342,21 @@ dat = BIAS[BIAS$group == "SD27_29",]
 # fit and check gam model
 gam.mod = gam(biomass_density_tonnes_per_km2 ~ s(year),
               data = dat,
+              family = Gamma(link = "log"),
               method = "REML")
 summary(gam.mod)
 gam.check(gam.mod)
 
 # make predictions from gam model
 p = predict(gam.mod, 
-            type = "response",
+            type = "link",
             se.fit = TRUE)
 
 
 # add predictions to df, including 95% CI
-dat$pred = p$fit
-dat$ymin = p$fit -  1.96 * p$se.fit
-dat$ymax = p$fit +  1.96 * p$se.fit
+dat$pred = gam.mod$family$linkinv(p$fit)
+dat$ymin = gam.mod$family$linkinv(p$fit - 1.96 * p$se.fit)
+dat$ymax = gam.mod$family$linkinv(p$fit + 1.96 * p$se.fit)
 
 
 
@@ -367,7 +370,7 @@ fig2b =
   geom_line(col = cols[2], size = 0.25) +
   
   # error bars for average densities
-  geom_errorbar(aes(ymin = biomass_density_tonnes_per_km2 - CI, ymax = biomass_density_tonnes_per_km2 + CI), 
+  geom_errorbar(aes(ymin = low_ci, ymax = high_ci), 
                 width = 0, size = 0.25, col = cols[2], alpha = 0.5) +
   
   # line for GAM predictions
@@ -377,10 +380,10 @@ fig2b =
   geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) +
   
   # add label for SD
-  annotate(geom = "text", x = 1993.5, y = 5.4, label = "SD 27-29", hjust = "left", family = "spec-font", size = 20) + 
+  annotate(geom = "text", x = 1993.5, y = 6.95, label = "SD 27-29", hjust = "left", family = "spec-font", size = 20) + 
   
   # add p value to plot
-  annotate(geom = "text", x = 1993.2, y = 0.4, label = "p < 0.001", hjust = "left", family = "spec-font", size = 18) + 
+  annotate(geom = "text", x = 1993, y = 1, label = "p < 0.001", hjust = "left", family = "spec-font", size = 18) + 
   
   # fix labels
   labs(
@@ -389,7 +392,7 @@ fig2b =
   
   # adjust plot limits
   lims( x = c(1993,2020)) +
-  scale_y_continuous(limits=c(0,5.6),oob=squish) +
+  #scale_y_continuous(limits=c(0, 7.3),oob=squish) +
   
   # graphical settings
   theme_bw(base_size = 12) +
@@ -405,19 +408,20 @@ dat = BIAS[BIAS$group == "SD30",]
 # fit and check gam model
 gam.mod = gam(biomass_density_tonnes_per_km2 ~ s(year),
               data = dat,
+              family = Gamma(link = "log"),
               method = "REML")
 summary(gam.mod)
 gam.check(gam.mod)
 
 # make predictions from gam model
 p = predict(gam.mod, 
-            type = "response",
+            type = "link",
             se.fit = TRUE)
 
 # add predictions to df, including 95% CI
-dat$pred = p$fit
-dat$ymin = p$fit -  1.96 * p$se.fit
-dat$ymax = p$fit +  1.96 * p$se.fit
+dat$pred = gam.mod$family$linkinv(p$fit)
+dat$ymin = gam.mod$family$linkinv(p$fit - 1.96 * p$se.fit)
+dat$ymax = gam.mod$family$linkinv(p$fit + 1.96 * p$se.fit)
 
 
 
@@ -430,7 +434,7 @@ fig2c =
   geom_line(col = cols[3], size = 0.25) +
   
   # error bars for average densities
-  geom_errorbar(aes(ymin = biomass_density_tonnes_per_km2 - CI, ymax = biomass_density_tonnes_per_km2 + CI), 
+  geom_errorbar(aes(ymin = low_ci, ymax = high_ci), 
                 width = 0, size = 0.25, col = cols[3], alpha = 0.5) +
   
   # line for GAM predictions
@@ -440,7 +444,7 @@ fig2c =
   geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) +
   
   # add label for SD
-  annotate(geom = "text", x = 1993.5, y = 5.4, label = "SD 30", hjust = "left", family = "spec-font", size = 20) + 
+  annotate(geom = "text", x = 1993.5, y = 2.9, label = "SD 30", hjust = "left", family = "spec-font", size = 20) + 
   
   # add p value to plot
   annotate(geom = "text", x = 1997, y = 0.4, label = "p = 0.002", hjust = "left", family = "spec-font", size = 18) + 
@@ -452,7 +456,7 @@ fig2c =
   
   # adjust plot limits
   lims( x = c(1993,2020)) +
-  scale_y_continuous(limits=c(0,5.6),oob=squish) +
+  scale_y_continuous(limits=c(0, 3.1),oob=squish) +
   
   # graphical settings
   theme_bw(base_size = 12) +
@@ -475,19 +479,20 @@ dat = juvs[juvs$area == "SD25",]
 # fit and check gam model
 gam.mod = gam(abundance ~ s(year),
               data = dat,
+              family = Gamma(link = "log"),
               method = "REML")
 summary(gam.mod)
 gam.check(gam.mod)
 
 # make predictions from gam model
 p = predict(gam.mod, 
-            type = "response",
+            type = "link",
             se.fit = TRUE)
 
 # add predictions to df, including 95% CI
-dat$pred = p$fit
-dat$ymin = p$fit -  1.96 * p$se.fit
-dat$ymax = p$fit +  1.96 * p$se.fit
+dat$pred = gam.mod$family$linkinv(p$fit)
+dat$ymin = gam.mod$family$linkinv(p$fit - 1.96 * p$se.fit)
+dat$ymax = gam.mod$family$linkinv(p$fit + 1.96 * p$se.fit)
 
 
 
@@ -501,7 +506,7 @@ fig2d =
   geom_line(col = cols[1], size = 0.25) +
   
   # error bars for average densities
-  geom_errorbar(aes(ymin = abundance - CI, ymax = abundance + CI), 
+  geom_errorbar(aes(ymin = low_ci, ymax = high_ci), 
                 width = 0, size = 0.25, col = cols[1], alpha = 0.5) +
   
   # line for GAM predictions
@@ -511,7 +516,7 @@ fig2d =
   geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) +
   
   # add label for SD
-  annotate(geom = "text", x = 1993.5, y = 260, label = "SD 25", hjust = "left", family = "spec-font", size = 20) + 
+  annotate(geom = "text", x = 1993.5, y = 385, label = "SD 25", hjust = "left", family = "spec-font", size = 20) + 
   
   # add p value to plot
   annotate(geom = "text", x = 2000, y = 20, label = "p = 0.08", hjust = "left", family = "spec-font", size = 18) + 
@@ -523,7 +528,9 @@ fig2d =
   
   # adjust plot limits
   lims( x = c(1993,2020)) +
-  scale_y_continuous(limits=c(0,270),oob=squish) +
+  scale_y_continuous(breaks = c(0, 100, 200, 300, 400),
+                     labels = c("0", "100", "200", "300", ""),
+                     limits = c(0, 405)) +
   
   # graphical settings
   theme_bw(base_size = 12) +
@@ -538,21 +545,20 @@ dat = juvs[juvs$area == "SD27_29",]
 # fit and check gam model
 gam.mod = gam(abundance ~ s(year),
               data = dat,
+              family = Gamma(link = "log"),
               method = "REML")
 summary(gam.mod)
 gam.check(gam.mod)
 
 # make predictions from gam model
 p = predict(gam.mod, 
-            type = "response",
+            type = "link",
             se.fit = TRUE)
 
 # add predictions to df, including 95% CI
-dat$pred = p$fit
-dat$ymin = p$fit -  1.96 * p$se.fit
-dat$ymax = p$fit +  1.96 * p$se.fit
-
-
+dat$pred = gam.mod$family$linkinv(p$fit)
+dat$ymin = gam.mod$family$linkinv(p$fit - 1.96 * p$se.fit)
+dat$ymax = gam.mod$family$linkinv(p$fit + 1.96 * p$se.fit)
 
 
 fig2e = 
@@ -564,7 +570,7 @@ fig2e =
   geom_line(col = cols[2], size = 0.25) +
   
   # error bars for average densities
-  geom_errorbar(aes(ymin = abundance - CI, ymax = abundance + CI), 
+  geom_errorbar(aes(ymin = low_ci, ymax = high_ci), 
                 width = 0, size = 0.25, col = cols[2], alpha = 0.5) +
   
   # line for GAM predictions
@@ -574,10 +580,10 @@ fig2e =
   geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) +
   
   # add label for SD
-  annotate(geom = "text", x = 1993.5, y = 260, label = "SD 27 & 29", hjust = "left", family = "spec-font", size = 20) + 
+  annotate(geom = "text", x = 1993.5, y = 210, label = "SD 27 & 29", hjust = "left", family = "spec-font", size = 20) + 
   
   # add p value to plot
-  annotate(geom = "text", x = 1993.5, y = 20, label = "p = 0.1", hjust = "left", family = "spec-font", size = 18) + 
+  annotate(geom = "text", x = 1993.5, y = 10, label = "p = 0.1", hjust = "left", family = "spec-font", size = 18) + 
   
   # fix labels
   labs(
@@ -586,7 +592,7 @@ fig2e =
   
   # adjust plot limits
   lims( x = c(1993,2020)) +
-  scale_y_continuous(limits=c(0,270),oob=squish) +
+  #scale_y_continuous(limits=c(0,780),oob=squish) +
   
   
   # graphical settings
@@ -600,22 +606,26 @@ fig2e =
 # subset data
 dat = juvs[juvs$area == "SD30",]
 
+dat$abundance[dat$abundance == 0] = 2e-16 # set to very small value as Gamma doesn't alow 0s
+
 # fit and check gam model
 gam.mod = gam(abundance ~ s(year),
               data = dat,
+              family = Gamma(link = "log"),
               method = "REML")
 summary(gam.mod)
 gam.check(gam.mod)
 
 # make predictions from gam model
 p = predict(gam.mod, 
-            type = "response",
+            type = "link",
             se.fit = TRUE)
 
 # add predictions to df, including 95% CI
-dat$pred = p$fit
-dat$ymin = p$fit -  1.96 * p$se.fit
-dat$ymax = p$fit +  1.96 * p$se.fit
+dat$pred = gam.mod$family$linkinv(p$fit)
+dat$ymin = gam.mod$family$linkinv(p$fit - 1.96 * p$se.fit)
+dat$ymax = gam.mod$family$linkinv(p$fit + 1.96 * p$se.fit)
+
 
 
 
@@ -628,7 +638,7 @@ fig2f =
   geom_line(col = cols[3], size = 0.25) +
   
   # error bars for average densities
-  geom_errorbar(aes(ymin = abundance - CI, ymax = abundance + CI), 
+  geom_errorbar(aes(ymin = low_ci, ymax = high_ci), 
                 width = 0, size = 0.25, col = cols[3], alpha = 0.5) +
   
   # line for GAM predictions
@@ -638,10 +648,10 @@ fig2f =
   geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) + 
   
   # add label for SD
-  annotate(geom = "text", x = 1993.5, y = 260, label = "SD 30", hjust = "left", family = "spec-font", size = 20) + 
+  annotate(geom = "text", x = 1993.5, y = 695, label = "SD 30", hjust = "left", family = "spec-font", size = 20) + 
   
   # add p value to plot
-  annotate(geom = "text", x = 1995, y = 20, label = "p = 0.3", hjust = "left", family = "spec-font", size = 18) + 
+  annotate(geom = "text", x = 1995, y = 50, label = "p = 0.3", hjust = "left", family = "spec-font", size = 18) + 
   
   # fix labels
   labs(
@@ -650,12 +660,140 @@ fig2f =
   
   # adjust plot limits
   lims( x = c(1993,2020)) +
-  scale_y_continuous(limits=c(0,270),oob=squish) +
+  #scale_y_continuous(limits=c(0,780),oob=squish) +
   
   # graphical settings
   theme_bw(base_size = 12) +
   theme_sets
 
+
+
+
+### cooling water data from Forsmark ###
+
+
+# fit and check gam model spring
+gam.mod.spring = gam(density_inds_per_m3 ~ s(year),
+                     data = forsmark[forsmark$season == "spring",],
+                     family = Gamma(link = "log"),
+                     method = "REML")
+summary(gam.mod.spring)
+gam.check(gam.mod.spring)
+
+# fit and check gam model autumn
+gam.mod.autumn = gam(density_inds_per_m3 ~ s(year),
+                     data = forsmark[forsmark$season == "autumn",],
+                     family = Gamma(link = "log"),
+                     method = "REML")
+summary(gam.mod.autumn)
+gam.check(gam.mod.autumn)
+
+
+# make predictions from gam model spring
+p =   predict(gam.mod.spring, 
+              newdata =  data.frame(year = forsmark$year[forsmark$season == "spring"]),
+              type = "link",
+              se.fit = TRUE)
+
+# add predictions to df, including 95% CI
+forsmark$pred[forsmark$season == "spring"] = gam.mod.spring$family$linkinv(p$fit)
+forsmark$ymin[forsmark$season == "spring"] = gam.mod.spring$family$linkinv(p$fit - 1.96 * p$se.fit)
+forsmark$ymax[forsmark$season == "spring"] = gam.mod.spring$family$linkinv(p$fit + 1.96 * p$se.fit)
+
+
+
+# make predictions from gam model autumn
+p =   predict(gam.mod.autumn, 
+              newdata =  data.frame(year = forsmark$year[forsmark$season == "autumn"]),
+              type = "link",
+              se.fit = TRUE)
+
+# add predictions to df, including 95% CI
+forsmark$pred[forsmark$season == "autumn"] = gam.mod.autumn$family$linkinv(p$fit)
+forsmark$ymin[forsmark$season == "autumn"] = gam.mod.autumn$family$linkinv(p$fit - 1.96 * p$se.fit)
+forsmark$ymax[forsmark$season == "autumn"] = gam.mod.autumn$family$linkinv(p$fit + 1.96 * p$se.fit)
+
+
+fig2g = 
+  
+  ggplot(data = forsmark[forsmark$season == "spring",], aes(x = year, y = density_inds_per_m3)) +
+  
+  # point and lines for average densities
+  geom_point(size = 0.75, col = "grey50") +
+  geom_line(size = 0.25, col = "grey50") +
+  
+  # error bars for average densities
+  geom_errorbar(aes(ymin = low_ci, ymax = high_ci), 
+                width = 0, size = 0.25, col = "grey50", alpha = 0.5) +
+  
+  # line for GAM predictions
+  geom_line(aes(y = pred)) +
+  
+  # CI interval GAM predictions
+  geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) + 
+  
+  # add label for location + season
+  annotate(geom = "text", x = 1993, y = 0.089, label = "Forsmark, Sweden", hjust = "left", family = "spec-font", size = 20) + 
+  annotate(geom = "text", x = 1993, y = 0.081, label = "Spring", hjust = "left", family = "spec-font", size = 20) + 
+  
+  # add p value to plot
+  annotate(geom = "text", x = 1997, y = 0.013, label = "p < 0.001", hjust = "left", family = "spec-font", size = 18) + 
+  
+  
+  # fix labels
+  labs(
+    x = "Year",
+    y = expression(paste("Density (fish m"^"-3", ")"))) +
+  
+  # adjust plot limits
+  lims( x = c(1993,2020)) +
+  #scale_y_continuous(limits=c(0,0.095),oob=squish,
+   #                  breaks = c(0.00, 0.02, 0.04, 0.06, 0.08),
+    #                 labels = c("0.00", "0.02", "0.04", "0.06", "")) +
+  
+  # graphical settings
+  theme_bw(base_size = 12) +
+  theme_sets 
+
+
+fig2h = 
+  
+  
+  ggplot(data = forsmark[forsmark$season == "autumn",], aes(x = year, y = density_inds_per_m3)) +
+  
+  # point and lines for average densities
+  geom_point(size = 0.75, col = "grey50") +
+  geom_line(size = 0.25, col = "grey50") +
+  
+  # error bars for average densities
+  geom_errorbar(aes(ymin = low_ci, ymax = high_ci), 
+                width = 0, size = 0.25, col = "grey50", alpha = 0.5) +
+  
+  # line for GAM predictions
+  geom_line(aes(y = pred)) +
+  
+  # CI interval GAM predictions
+  geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) + 
+  
+  # add label for location and season
+  annotate(geom = "text", x = 1993, y = 0.130, label = "Forsmark, Sweden", hjust = "left", family = "spec-font", size = 20) + 
+  annotate(geom = "text", x = 1993, y = 0.119, label = "Autumn", hjust = "left", family = "spec-font", size = 20) + 
+  
+  # add p value to plot
+  annotate(geom = "text", x = 1993, y = 0.015, label = "p < 0.001", hjust = "left", family = "spec-font", size = 18) + 
+  
+  # fix labels
+  labs(
+    x = "Year",
+    y = expression(paste("Density (fish m"^"-3", ")"))) +
+  
+  # adjust plot limits
+  lims( x = c(1993,2020)) +
+  #scale_y_continuous(limits=c(0,0.135),oob=squish) +
+  
+  # graphical settings
+  theme_bw(base_size = 12) +
+  theme_sets 
 
 
 
@@ -672,24 +810,26 @@ dat = finland[finland$value == "mid",]
 dat$year = as.numeric(dat$year)
 
 # fit and check gam model
-gam.mod = gam(stick ~ s(year, k = 3),
+gam.mod = gam(stick ~ s(year, k = 9), # k adjusted due to few values
               data = dat,
+              family = Gamma(link = "log"),
               method = "REML")
 summary(gam.mod)
 gam.check(gam.mod)
 
 # make predictions from gam model
 p = predict(gam.mod, 
-            type = "response",
+            type = "link",
             se.fit = TRUE)
 
-dat$pred = p$fit
-dat$ymin = p$fit -  1.96 * p$se.fit
-dat$ymax = p$fit +  1.96 * p$se.fit
+dat$pred = gam.mod$family$linkinv(p$fit)
+dat$ymin = gam.mod$family$linkinv(p$fit - 1.96 * p$se.fit)
+dat$ymax = gam.mod$family$linkinv(p$fit + 1.96 * p$se.fit)
 
 
 
-ts3 = 
+
+fig2i = 
   
   ggplot(data = dat, aes(x = year, y = stick)) +
   
@@ -729,9 +869,12 @@ ts3 =
 ### trapping data from Latvia ###
 
 
+latvia$stickleback[latvia$stickleback == 0] = 2e-16 # set to very small value as Gamma doesn't alow 0s
+
 # fit and check gam model Pape
 gam.mod.pape = gam(stickleback ~ s(year),
                    data = latvia[latvia$area == "Pape",],
+                   family = Gamma(link = "log"),
                    method = "REML")
 summary(gam.mod.pape)
 gam.check(gam.mod.pape)
@@ -739,6 +882,7 @@ gam.check(gam.mod.pape)
 # fit and check gam model Kolka
 gam.mod.kolka = gam(stickleback ~ s(year),
                     data = latvia[latvia$area == "Kolka",],
+                    family = Gamma(link = "log"),
                     method = "REML")
 summary(gam.mod.kolka)
 gam.check(gam.mod.kolka)
@@ -747,25 +891,26 @@ gam.check(gam.mod.kolka)
 # make predictions from gam model Pape
 p =   predict(gam.mod.pape, 
               newdata =  data.frame(year = latvia$year[latvia$area == "Pape"]),
-              type = "response",
+              type = "link",
               se.fit = TRUE)
 
 # add predictions to df, including 95% CI
-latvia$pred[latvia$area == "Pape"] = p$fit
-latvia$ymin[latvia$area == "Pape"] = p$fit -  1.96 * p$se.fit
-latvia$ymax[latvia$area == "Pape"] = p$fit +  1.96 * p$se.fit
+latvia$pred[latvia$area == "Pape"] = gam.mod.pape$family$linkinv(p$fit)
+latvia$ymin[latvia$area == "Pape"] = gam.mod.pape$family$linkinv(p$fit - 1.96 * p$se.fit)
+latvia$ymax[latvia$area == "Pape"] = gam.mod.pape$family$linkinv(p$fit + 1.96 * p$se.fit)
+
 
 
 # make predictions from gam model Kolka
 p =   predict(gam.mod.kolka, 
               newdata =  data.frame(year = latvia$year[latvia$area == "Kolka"]),
-              type = "response",
+              type = "link",
               se.fit = TRUE)
 
 # add predictions to df, including 95% CI
-latvia$pred[latvia$area == "Kolka"] = p$fit
-latvia$ymin[latvia$area == "Kolka"] = p$fit -  1.96 * p$se.fit
-latvia$ymax[latvia$area == "Kolka"] = p$fit +  1.96 * p$se.fit
+latvia$pred[latvia$area == "Kolka"] = gam.mod.kolka$family$linkinv(p$fit)
+latvia$ymin[latvia$area == "Kolka"] = gam.mod.kolka$family$linkinv(p$fit - 1.96 * p$se.fit)
+latvia$ymax[latvia$area == "Kolka"] = gam.mod.kolka$family$linkinv(p$fit + 1.96 * p$se.fit)
 
 
 
@@ -830,7 +975,8 @@ fig2k =
   # adjust plot limits
   lims( x = c(1993,2020)) +
   scale_y_continuous(breaks = c(0.5, 1, 1.5, 2, 2.5),
-                     labels = c("0.5", "1.0", "1.5", "2.0", "")) +
+                     labels = c("0.5", "1.0", "1.5", "2.0", ""),
+                     limits = c(0, 2.6)) +
 
   # graphical settings
   theme_bw() +
@@ -839,129 +985,6 @@ fig2k =
 
 
 
-
-### cooling water data from Forsmark ###
-
-
-# fit and check gam model spring
-gam.mod.spring = gam(density_inds_per_m3 ~ s(year),
-                     data = forsmark[forsmark$season == "spring",],
-                     method = "REML")
-summary(gam.mod.spring)
-
-
-# fit and check gam model autumn
-gam.mod.autumn = gam(density_inds_per_m3 ~ s(year),
-                     data = forsmark[forsmark$season == "autumn",],
-                     method = "REML")
-summary(gam.mod.autumn)
-gam.check(gam.mod)
-
-
-# make predictions from gam model spring
-p =   predict(gam.mod.spring, 
-              newdata =  data.frame(year = forsmark$year[forsmark$season == "spring"]),
-              type = "response",
-              se.fit = TRUE)
-
-# add predictions to df, including 95% CI
-forsmark$pred[forsmark$season == "spring"] = p$fit
-forsmark$ymin[forsmark$season == "spring"] = p$fit -  1.96 * p$se.fit
-forsmark$ymax[forsmark$season == "spring"] = p$fit +  1.96 * p$se.fit
-
-# make predictions from gam model autumn
-p =   predict(gam.mod.autumn, 
-              newdata =  data.frame(year = forsmark$year[forsmark$season == "autumn"]),
-              type = "response",
-              se.fit = TRUE)
-
-# add predictions to df, including 95% CI
-forsmark$pred[forsmark$season == "autumn"] = p$fit
-forsmark$ymin[forsmark$season == "autumn"] = p$fit -  1.96 * p$se.fit
-forsmark$ymax[forsmark$season == "autumn"] = p$fit +  1.96 * p$se.fit
-
-
-
-fig2g = 
-  
-  ggplot(data = forsmark[forsmark$season == "spring",], aes(x = year, y = density_inds_per_m3)) +
-  
-  # point and lines for average densities
-  geom_point(size = 0.75, col = "grey50") +
-  geom_line(size = 0.25, col = "grey50") +
-  
-  # error bars for average densities
-  geom_errorbar(aes(ymin = density_inds_per_m3 - CI, ymax = density_inds_per_m3 + CI), 
-                width = 0, size = 0.25, col = "grey50", alpha = 0.5) +
-  
-  # line for GAM predictions
-  geom_line(aes(y = pred)) +
-  
-  # CI interval GAM predictions
-  geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) + 
-  
-  # add label for location + season
-  annotate(geom = "text", x = 1993, y = 0.076, label = "Forsmark, Sweden", hjust = "left", family = "spec-font", size = 20) + 
-  annotate(geom = "text", x = 1993, y = 0.068, label = "Spring", hjust = "left", family = "spec-font", size = 20) + 
-
-  # add p value to plot
-  annotate(geom = "text", x = 1997, y = 0.013, label = "p < 0.001", hjust = "left", family = "spec-font", size = 18) + 
-  
-  
-  # fix labels
-  labs(
-    x = "Year",
-    y = expression(paste("Density (fish m"^"-3", ")"))) +
-  
-  # adjust plot limits
-  lims( x = c(1993,2020)) +
-  scale_y_continuous(limits=c(0,0.08),oob=squish,
-                     breaks = c(0.00, 0.02, 0.04, 0.06, 0.08),
-                     labels = c("0.00", "0.02", "0.04", "0.06", "")) +
-  
-  # graphical settings
-  theme_bw(base_size = 12) +
-  theme_sets 
-
-
-fig2h = 
-  
-  
-  ggplot(data = forsmark[forsmark$season == "autumn",], aes(x = year, y = density_inds_per_m3)) +
-  
-  # point and lines for average densities
-  geom_point(size = 0.75, col = "grey50") +
-  geom_line(size = 0.25, col = "grey50") +
-  
-  # error bars for average densities
-  geom_errorbar(aes(ymin = density_inds_per_m3 - CI, ymax = density_inds_per_m3 + CI), 
-                width = 0, size = 0.25, col = "grey50", alpha = 0.5) +
-  
-  # line for GAM predictions
-  geom_line(aes(y = pred)) +
-  
-  # CI interval GAM predictions
-  geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) + 
-  
-  # add label for location and season
-  annotate(geom = "text", x = 1993, y = 0.104, label = "Forsmark, Sweden", hjust = "left", family = "spec-font", size = 20) + 
-  annotate(geom = "text", x = 1993, y = 0.093, label = "Autumn", hjust = "left", family = "spec-font", size = 20) + 
-  
-  # add p value to plot
-  annotate(geom = "text", x = 1993, y = 0.015, label = "p < 0.001", hjust = "left", family = "spec-font", size = 18) + 
-  
-  # fix labels
-  labs(
-    x = "Year",
-    y = expression(paste("Density (fish m"^"-3", ")"))) +
-  
-  # adjust plot limits
-  lims( x = c(1993,2020)) +
-  scale_y_continuous(limits=c(0,0.11),oob=squish) +
-  
-  # graphical settings
-  theme_bw(base_size = 12) +
-  theme_sets 
 
 
 
@@ -978,7 +1001,7 @@ top_row = plot_grid(plots1[[1]], plots2[[1]], plots3[[1]],
                     label_size = 70,
                     label_fontfamily = "spec-font",
                     label_fontface = "plain", 
-                    label_x = c(0.14, 0.12, 0.12),
+                    label_x = c(0.16, 0.12, 0.12),
                     ncol = 3)
 
 mid_row1 = plot_grid(plots1[[2]], plots2[[2]], plots3[[2]],
@@ -986,14 +1009,14 @@ mid_row1 = plot_grid(plots1[[2]], plots2[[2]], plots3[[2]],
                      label_size = 70,
                      label_fontfamily = "spec-font",
                      label_fontface = "plain", 
-                     label_x = c(0.14, 0.12, 0.15), 
+                     label_x = c(0.15, 0.12, 0.15), 
                      ncol = 3)
 
 mid_row2 =   plot_grid(plots1[[4]], fig2h, labels = c('g.', 'h.'), 
                        label_size = 70,
                        label_fontfamily = "spec-font",
                        label_fontface = "plain", 
-                       label_x = c(0.09, 0.1), 
+                       label_x = c(0.1, 0.09), 
                        ncol = 2)
 
 bottom_row =  plot_grid(plots1[[3]], plots2[[3]], plots3[[3]], 
@@ -1001,7 +1024,7 @@ bottom_row =  plot_grid(plots1[[3]], plots2[[3]], plots3[[3]],
                         label_size = 75,
                         label_fontfamily = "spec-font",
                         label_fontface = "plain", 
-                        label_x = c(0.17, 0.13, 0.12),
+                        label_x = c(0.19, 0.13, 0.12),
                         ncol = 3)
 
 
