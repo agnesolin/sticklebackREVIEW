@@ -27,6 +27,7 @@
 library(cowplot) # version 1.1.1
 library(ggplot2) # version 3.3.5
 library(ggpubr) # version 0.4.0
+library(MuMIn) # version 1.43.17
 library(mgcv) # version 1.8-36
 library(RColorBrewer) # version 1.1-2
 library(scales) # version 1.1.1
@@ -269,18 +270,44 @@ theme_sets = theme(
 BIAS$group = factor(BIAS$group, levels = c("SD30", "SD27_29", "SD25"))
 
 
+#### 2a ####
 ## SD 25 ##
 
 # subset data
 dat = BIAS[BIAS$group == "SD25",] 
 
 # fit and check gam model
-gam.mod = gam(biomass_density_tonnes_per_km2 ~ s(year),
+gam.mod = gam(biomass_density_tonnes_per_km2 ~ s(year, k = 3),
               data = dat,
               family = Gamma(link = "log"),
               method = "REML")
-summary(gam.mod)
 gam.check(gam.mod)
+summary(gam.mod)
+
+# save p-value
+p.value = signif(summary(gam.mod)$s.table[,4], digits = 1)
+
+# check temporal autocorrelation
+acf(residuals(gam.mod), lag.max = 2) 
+
+# fit null model without year effect
+gam.mod.null = gam(biomass_density_tonnes_per_km2 ~ 1,
+                   data = dat,
+                   family = Gamma(link = "log"),
+                   method = "REML")
+
+# calculate delta-AIC
+dAIC = signif(AICc(gam.mod)-AICc(gam.mod.null), digits = 2)
+
+# added penalty variable selection
+gam.mod.select = gam(biomass_density_tonnes_per_km2 ~ s(year),
+                     data = dat,
+                     family = Gamma(link = "log"),
+                     select = T,
+                     method = "REML")
+summary(gam.mod.select)
+select = "selected"
+
 
 # make predictions from gam model
 p = predict(gam.mod, 
@@ -317,7 +344,19 @@ fig2a =
   annotate(geom = "text", x = 1993.5, y = 5.30, label = "SD 25", hjust = "left", family = "spec-font", size = 21) + 
   
   # add p value to plot
-  annotate(geom = "text", x = 1993.5, y = 0.2, label = "p = 0.3", hjust = "left", family = "spec-font", size = 18) + 
+  annotate(geom = "text", x = 1993.5, y = 1.5, 
+           label = paste("p =", p.value), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add deltaAIC value to plot
+  annotate(geom = "text", x = 1993.5, y = 0.95, 
+           label = bquote(Delta*AIC[C] ~ "=" ~ .(dAIC)),
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add result of variable selection
+  annotate(geom = "text", x = 1993.5, y = 0.5, 
+           label = select, 
+           hjust = "left", family = "spec-font", size = 18, fontface = "bold") + 
   
   # fix labels
   labs(
@@ -333,19 +372,45 @@ fig2a =
   theme_sets
 
 
-
+#### 2b ####
 ## SD 27-29 ##
 
 # subset data
 dat = BIAS[BIAS$group == "SD27_29",]
 
 # fit and check gam model
-gam.mod = gam(biomass_density_tonnes_per_km2 ~ s(year),
+gam.mod = gam(biomass_density_tonnes_per_km2 ~ s(year, k = 3),
               data = dat,
               family = Gamma(link = "log"),
               method = "REML")
-summary(gam.mod)
 gam.check(gam.mod)
+summary(gam.mod)
+
+# save p-value
+p.value = signif(summary(gam.mod)$s.table[,4], digits = 1)
+
+# check temporal autocorrelation
+acf(residuals(gam.mod), lag.max = 2) 
+# some signs of neg corr 2 years, but this is unlikely to be due to stickleback demographics - we would expect positive corrs (a lot of stickleback year t -> high recruitment -> plenty of stickleback in two years)
+
+# fit null model without year effect
+gam.mod.null = gam(biomass_density_tonnes_per_km2 ~ 1,
+                   data = dat,
+                   family = Gamma(link = "log"),
+                   method = "REML")
+
+# calculate delta-AIC
+dAIC = signif(AICc(gam.mod)-AICc(gam.mod.null), digits = 2)
+
+# added penalty variable selection
+gam.mod.select = gam(biomass_density_tonnes_per_km2 ~ s(year),
+                     data = dat,
+                     family = Gamma(link = "log"),
+                     select = T,
+                     method = "REML")
+summary(gam.mod.select)
+select = "selected"
+
 
 # make predictions from gam model
 p = predict(gam.mod, 
@@ -357,8 +422,6 @@ p = predict(gam.mod,
 dat$pred = gam.mod$family$linkinv(p$fit)
 dat$ymin = gam.mod$family$linkinv(p$fit - 1.96 * p$se.fit)
 dat$ymax = gam.mod$family$linkinv(p$fit + 1.96 * p$se.fit)
-
-
 
 
 fig2b = 
@@ -380,10 +443,23 @@ fig2b =
   geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) +
   
   # add label for SD
-  annotate(geom = "text", x = 1993.5, y = 6.95, label = "SD 27-29", hjust = "left", family = "spec-font", size = 20) + 
+  annotate(geom = "text", x = 1993.5, y = 6.97, label = "SD 27-29", hjust = "left", family = "spec-font", size = 20) + 
   
   # add p value to plot
-  annotate(geom = "text", x = 1993, y = 1, label = "p < 0.001", hjust = "left", family = "spec-font", size = 18) + 
+  annotate(geom = "text", x = 1993.5, y = 3.78, 
+           label = paste("p =", p.value), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add deltaAIC value to plot
+  annotate(geom = "text", x = 1993.5, y = 3.08, 
+           label = bquote(Delta*AIC[C] ~ "=" ~ .(dAIC)), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add result of variable selection
+  annotate(geom = "text", x = 1993.5, y = 2.5, 
+           label = select, 
+           hjust = "left", family = "spec-font", size = 18, fontface = "bold") + 
+  
   
   # fix labels
   labs(
@@ -399,19 +475,43 @@ fig2b =
   theme_sets
 
 
-
+#### 2c ####
 ## SD 30 ##
 
 # subset data
 dat = BIAS[BIAS$group == "SD30",]
 
 # fit and check gam model
-gam.mod = gam(biomass_density_tonnes_per_km2 ~ s(year),
+gam.mod = gam(biomass_density_tonnes_per_km2 ~ s(year, k = 3),
               data = dat,
               family = Gamma(link = "log"),
               method = "REML")
-summary(gam.mod)
 gam.check(gam.mod)
+summary(gam.mod)
+
+# save p-value
+p.value = signif(summary(gam.mod)$s.table[,4], digits = 1)
+
+# check temporal autocorrelation
+acf(residuals(gam.mod), lag.max = 2)
+
+# fit null model without year effect
+gam.mod.null = gam(biomass_density_tonnes_per_km2 ~ 1,
+                   data = dat,
+                   family = Gamma(link = "log"),
+                   method = "REML")
+
+# calculate delta-AIC
+dAIC = signif(AICc(gam.mod)-AICc(gam.mod.null), digits = 2)
+
+# added penalty variable selection
+gam.mod.select = gam(biomass_density_tonnes_per_km2 ~ s(year),
+                     data = dat,
+                     family = Gamma(link = "log"),
+                     select = T,
+                     method = "REML")
+summary(gam.mod.select)
+select = "selected"
 
 # make predictions from gam model
 p = predict(gam.mod, 
@@ -422,7 +522,6 @@ p = predict(gam.mod,
 dat$pred = gam.mod$family$linkinv(p$fit)
 dat$ymin = gam.mod$family$linkinv(p$fit - 1.96 * p$se.fit)
 dat$ymax = gam.mod$family$linkinv(p$fit + 1.96 * p$se.fit)
-
 
 
 fig2c = 
@@ -447,7 +546,20 @@ fig2c =
   annotate(geom = "text", x = 1993.5, y = 2.9, label = "SD 30", hjust = "left", family = "spec-font", size = 20) + 
   
   # add p value to plot
-  annotate(geom = "text", x = 1997, y = 0.4, label = "p = 0.002", hjust = "left", family = "spec-font", size = 18) + 
+  annotate(geom = "text", x = 1995.5, y = 0.95, 
+           label = paste("p =", p.value), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add deltaAIC value to plot
+  annotate(geom = "text", x = 1995.5, y = 0.65, 
+           label = bquote(Delta*AIC[C] ~ "=" ~ .(dAIC)), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add result of variable selection
+  annotate(geom = "text", x = 1995.5, y = 0.4, 
+           label = select, 
+           hjust = "left", family = "spec-font", size = 18, fontface = "bold") + 
+  
   
   # fix labels
   labs(
@@ -470,19 +582,43 @@ fig2c =
 juvs$area = factor(juvs$area, levels = c("SD30", "SD27_29", "SD25"))
 
 
-
+#### 2d ####
 ## SD 25 ##
 
 # subset data
 dat = juvs[juvs$area == "SD25",]
 
 # fit and check gam model
-gam.mod = gam(abundance ~ s(year),
+gam.mod = gam(abundance ~ s(year, k = 5),
               data = dat,
               family = Gamma(link = "log"),
               method = "REML")
-summary(gam.mod)
 gam.check(gam.mod)
+summary(gam.mod)
+
+# save p-value
+p.value = signif(summary(gam.mod)$s.table[,4], digits = 1)
+
+# check temporal autocorrelation
+acf(residuals(gam.mod), lag.max = 2) 
+
+# fit null model without year effect
+gam.mod.null = gam(abundance ~ 1,
+                   data = dat,
+                   family = Gamma(link = "log"),
+                   method = "REML")
+
+# calculate delta_AIC
+dAIC = signif(AICc(gam.mod)-AICc(gam.mod.null), digits = 2)
+
+# added penalty variable selection
+gam.mod.select = gam(abundance ~ s(year),
+                     data = dat,
+                     family = Gamma(link = "log"),
+                     select = T,
+                     method = "REML")
+summary(gam.mod.select)
+select = "selected"
 
 # make predictions from gam model
 p = predict(gam.mod, 
@@ -493,8 +629,6 @@ p = predict(gam.mod,
 dat$pred = gam.mod$family$linkinv(p$fit)
 dat$ymin = gam.mod$family$linkinv(p$fit - 1.96 * p$se.fit)
 dat$ymax = gam.mod$family$linkinv(p$fit + 1.96 * p$se.fit)
-
-
 
 
 fig2d = 
@@ -516,10 +650,22 @@ fig2d =
   geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) +
   
   # add label for SD
-  annotate(geom = "text", x = 1993.5, y = 385, label = "SD 25", hjust = "left", family = "spec-font", size = 20) + 
+  annotate(geom = "text", x = 1993.5, y = 477, label = "SD 25", hjust = "left", family = "spec-font", size = 20) + 
   
   # add p value to plot
-  annotate(geom = "text", x = 2000, y = 20, label = "p = 0.08", hjust = "left", family = "spec-font", size = 18) + 
+  annotate(geom = "text", x = 1996, y = 95, 
+           label = paste("p =", p.value), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add deltaAIC value to plot
+  annotate(geom = "text", x = 1996, y = 52, 
+           label = bquote(Delta*AIC[C] ~ "=" ~ .(dAIC)), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add result of variable selection
+  annotate(geom = "text", x = 1996, y = 17, 
+           label = select, 
+           hjust = "left", family = "spec-font", size = 18, fontface = "bold") + 
   
   # fix labels
   labs(
@@ -528,27 +674,51 @@ fig2d =
   
   # adjust plot limits
   lims( x = c(1993,2020)) +
-  scale_y_continuous(breaks = c(0, 100, 200, 300, 400),
-                     labels = c("0", "100", "200", "300", ""),
-                     limits = c(0, 405)) +
+   scale_y_continuous(breaks = c(0, 100, 200, 300, 400, 500),
+                      labels = c("0", "100", "200", "300", "400", ""),
+                      limits = c(0, 500)) +
   
   # graphical settings
   theme_bw(base_size = 12) +
   theme_sets
 
-
+#### 2e ####
 ## SD 27-29 ##
 
 # subset data
 dat = juvs[juvs$area == "SD27_29",]
 
 # fit and check gam model
-gam.mod = gam(abundance ~ s(year),
+gam.mod = gam(abundance ~ s(year, k = 3),
               data = dat,
               family = Gamma(link = "log"),
               method = "REML")
-summary(gam.mod)
 gam.check(gam.mod)
+summary(gam.mod)
+
+# save p-value
+p.value = signif(summary(gam.mod)$s.table[,4], digits = 1)
+
+# check temporal autocorrelation
+acf(residuals(gam.mod), lag.max = 2) 
+
+# fit null model without year effect
+gam.mod.null = gam(abundance ~ 1,
+                   data = dat,
+                   family = Gamma(link = "log"),
+                   method = "REML")
+
+# calculate delta-AIC
+dAIC = signif(AICc(gam.mod)-AICc(gam.mod.null), digits = 2)
+
+# added penalty variable selection
+gam.mod.select = gam(abundance ~ s(year),
+                     data = dat,
+                     family = Gamma(link = "log"),
+                     select = T,
+                     method = "REML")
+summary(gam.mod.select)
+select = "selected"
 
 # make predictions from gam model
 p = predict(gam.mod, 
@@ -559,7 +729,6 @@ p = predict(gam.mod,
 dat$pred = gam.mod$family$linkinv(p$fit)
 dat$ymin = gam.mod$family$linkinv(p$fit - 1.96 * p$se.fit)
 dat$ymax = gam.mod$family$linkinv(p$fit + 1.96 * p$se.fit)
-
 
 fig2e = 
   
@@ -582,8 +751,22 @@ fig2e =
   # add label for SD
   annotate(geom = "text", x = 1993.5, y = 210, label = "SD 27 & 29", hjust = "left", family = "spec-font", size = 20) + 
   
+
   # add p value to plot
-  annotate(geom = "text", x = 1993.5, y = 10, label = "p = 0.1", hjust = "left", family = "spec-font", size = 18) + 
+  annotate(geom = "text", x = 1993, y = 77, 
+           label = paste("p =", p.value), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add deltaAIC value to plot
+  annotate(geom = "text", x = 1993, y = 56, 
+           label = bquote(Delta*AIC[C] ~ "=" ~ .(dAIC)), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add result of variable selection
+  annotate(geom = "text", x = 1993, y = 40, 
+           label = select, 
+           hjust = "left", family = "spec-font", size = 18, fontface = "bold") + 
+  
   
   # fix labels
   labs(
@@ -601,20 +784,47 @@ fig2e =
 
 
 
+#### 2f ####
 ## SD 30 ##
 
 # subset data
 dat = juvs[juvs$area == "SD30",]
 
-dat$abundance[dat$abundance == 0] = 2e-16 # set to very small value as Gamma doesn't alow 0s
+dat$abundance[dat$abundance == 0] = 2e-16 # set to very small value as Gamma doesn't allow 0s
+
 
 # fit and check gam model
-gam.mod = gam(abundance ~ s(year),
+gam.mod = gam(abundance ~ s(year, k = 3),
               data = dat,
               family = Gamma(link = "log"),
               method = "REML")
-summary(gam.mod)
 gam.check(gam.mod)
+summary(gam.mod)
+
+# save p-value
+p.value = signif(summary(gam.mod)$s.table[,4], digits = 1)
+
+# check temporal autocorrelation
+acf(residuals(gam.mod), lag.max = 2) 
+
+# fit null model without year effect
+gam.mod.null = gam(abundance ~ 1,
+                   data = dat,
+                   family = Gamma(link = "log"),
+                   method = "REML")
+
+# calculate delta-AIC
+dAIC = signif(AICc(gam.mod)-AICc(gam.mod.null), digits = 2)
+
+# added penalty variable selection
+gam.mod.select = gam(abundance ~ s(year),
+                     data = dat,
+                     family = Gamma(link = "log"),
+                     select = T,
+                     method = "REML")
+summary(gam.mod.select)
+select = "not selected"
+
 
 # make predictions from gam model
 p = predict(gam.mod, 
@@ -625,8 +835,6 @@ p = predict(gam.mod,
 dat$pred = gam.mod$family$linkinv(p$fit)
 dat$ymin = gam.mod$family$linkinv(p$fit - 1.96 * p$se.fit)
 dat$ymax = gam.mod$family$linkinv(p$fit + 1.96 * p$se.fit)
-
-
 
 
 fig2f = 
@@ -650,8 +858,21 @@ fig2f =
   # add label for SD
   annotate(geom = "text", x = 1993.5, y = 695, label = "SD 30", hjust = "left", family = "spec-font", size = 20) + 
   
+
   # add p value to plot
-  annotate(geom = "text", x = 1995, y = 50, label = "p = 0.3", hjust = "left", family = "spec-font", size = 18) + 
+  annotate(geom = "text", x = 1994, y = 395, 
+           label = paste("p =", p.value), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add deltaAIC value to plot
+  annotate(geom = "text", x = 1994, y = 320, 
+           label = bquote(Delta*AIC[C] ~ "=" ~ .(dAIC)), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add result of variable selection
+  annotate(geom = "text", x = 1994, y = 258, 
+           label = select, 
+           hjust = "left", family = "spec-font", size = 18, fontface = "bold") + 
   
   # fix labels
   labs(
@@ -671,22 +892,39 @@ fig2f =
 
 ### cooling water data from Forsmark ###
 
-
+#### 2g ####
 # fit and check gam model spring
-gam.mod.spring = gam(density_inds_per_m3 ~ s(year),
+gam.mod.spring = gam(density_inds_per_m3 ~ s(year, k = 13),
                      data = forsmark[forsmark$season == "spring",],
                      family = Gamma(link = "log"),
                      method = "REML")
-summary(gam.mod.spring)
 gam.check(gam.mod.spring)
+summary(gam.mod.spring)
 
-# fit and check gam model autumn
-gam.mod.autumn = gam(density_inds_per_m3 ~ s(year),
-                     data = forsmark[forsmark$season == "autumn",],
+# save p-value
+p.value = signif(summary(gam.mod.spring)$s.table[,4], digits = 1)
+
+# check temporal autocorrelation
+acf(residuals(gam.mod.spring), lag.max = 2) 
+
+# fit null model without year effect
+gam.mod.null = gam(density_inds_per_m3 ~ 1,
+                   data = forsmark[forsmark$season == "spring",],
+                   family = Gamma(link = "log"),
+                   method = "REML")
+
+# calculate delta-AIC
+dAIC = signif(AICc(gam.mod.spring)-AICc(gam.mod.null), digits = 2)
+
+# added penalty variable selection
+gam.mod.select = gam(density_inds_per_m3 ~ s(year),
+                     data = forsmark[forsmark$season == "spring",],
                      family = Gamma(link = "log"),
+                     select = T,
                      method = "REML")
-summary(gam.mod.autumn)
-gam.check(gam.mod.autumn)
+summary(gam.mod.select)
+select = "selected"
+
 
 
 # make predictions from gam model spring
@@ -699,19 +937,6 @@ p =   predict(gam.mod.spring,
 forsmark$pred[forsmark$season == "spring"] = gam.mod.spring$family$linkinv(p$fit)
 forsmark$ymin[forsmark$season == "spring"] = gam.mod.spring$family$linkinv(p$fit - 1.96 * p$se.fit)
 forsmark$ymax[forsmark$season == "spring"] = gam.mod.spring$family$linkinv(p$fit + 1.96 * p$se.fit)
-
-
-
-# make predictions from gam model autumn
-p =   predict(gam.mod.autumn, 
-              newdata =  data.frame(year = forsmark$year[forsmark$season == "autumn"]),
-              type = "link",
-              se.fit = TRUE)
-
-# add predictions to df, including 95% CI
-forsmark$pred[forsmark$season == "autumn"] = gam.mod.autumn$family$linkinv(p$fit)
-forsmark$ymin[forsmark$season == "autumn"] = gam.mod.autumn$family$linkinv(p$fit - 1.96 * p$se.fit)
-forsmark$ymax[forsmark$season == "autumn"] = gam.mod.autumn$family$linkinv(p$fit + 1.96 * p$se.fit)
 
 
 fig2g = 
@@ -733,11 +958,24 @@ fig2g =
   geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) + 
   
   # add label for location + season
-  annotate(geom = "text", x = 1993, y = 0.089, label = "Forsmark, Sweden", hjust = "left", family = "spec-font", size = 20) + 
-  annotate(geom = "text", x = 1993, y = 0.081, label = "Spring", hjust = "left", family = "spec-font", size = 20) + 
+  annotate(geom = "text", x = 1993, y = 0.114, label = "Forsmark, Sweden", hjust = "left", family = "spec-font", size = 20) + 
+  annotate(geom = "text", x = 1993, y = 0.105, label = "Spring", hjust = "left", family = "spec-font", size = 20) + 
   
+
   # add p value to plot
-  annotate(geom = "text", x = 1997, y = 0.013, label = "p < 0.001", hjust = "left", family = "spec-font", size = 18) + 
+  annotate(geom = "text", x = 1997, y = 0.036, 
+           label = paste("p =", p.value), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add deltaAIC value to plot
+  annotate(geom = "text", x = 1997, y = 0.025, 
+           label = bquote(Delta*AIC[C] ~ "=" ~ .(dAIC)), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add result of variable selection
+  annotate(geom = "text", x = 1997, y = 0.016, 
+           label = select, 
+           hjust = "left", family = "spec-font", size = 18, fontface = "bold") + 
   
   
   # fix labels
@@ -747,13 +985,60 @@ fig2g =
   
   # adjust plot limits
   lims( x = c(1993,2020)) +
-  #scale_y_continuous(limits=c(0,0.095),oob=squish,
-   #                  breaks = c(0.00, 0.02, 0.04, 0.06, 0.08),
-    #                 labels = c("0.00", "0.02", "0.04", "0.06", "")) +
-  
+  scale_y_continuous(breaks = c(0, 0.03, 0.06, 0.09, 0.12),
+                     labels = c("0", "0.03", "0.06", "0.09", ""),
+                     limits = c(0, 0.12)) +
+
   # graphical settings
   theme_bw(base_size = 12) +
   theme_sets 
+
+
+#### 2h ####
+# fit and check gam model autumn
+gam.mod.autumn = gam(density_inds_per_m3 ~ s(year, k = 3),
+                     data = forsmark[forsmark$season == "autumn",],
+                     family = Gamma(link = "log"),
+                     method = "REML")
+gam.check(gam.mod.autumn)
+summary(gam.mod.autumn)
+
+# save p-value
+p.value = signif(summary(gam.mod.spring)$s.table[,4], digits = 1)
+
+# check temporal autocorrelation
+acf(residuals(gam.mod.autumn), lag.max = 2) 
+
+# fit null model without year effect
+gam.mod.null = gam(density_inds_per_m3 ~ 1,
+                   data = forsmark[forsmark$season == "autumn",],
+                   family = Gamma(link = "log"),
+                   method = "REML")
+
+# save delta-AIC
+dAIC = signif(AICc(gam.mod.autumn)-AICc(gam.mod.null), digits = 2)
+
+# added penalty variable selection
+gam.mod.select = gam(density_inds_per_m3 ~ s(year),
+                     data = forsmark[forsmark$season == "autumn",],
+                     family = Gamma(link = "log"),
+                     select = T,
+                     method = "REML")
+summary(gam.mod.select)
+select = "selected"
+
+
+# make predictions from gam model autumn
+p =   predict(gam.mod.autumn, 
+              newdata =  data.frame(year = forsmark$year[forsmark$season == "autumn"]),
+              type = "link",
+              se.fit = TRUE)
+
+# add predictions to df, including 95% CI
+forsmark$pred[forsmark$season == "autumn"] = gam.mod.autumn$family$linkinv(p$fit)
+forsmark$ymin[forsmark$season == "autumn"] = gam.mod.autumn$family$linkinv(p$fit - 1.96 * p$se.fit)
+forsmark$ymax[forsmark$season == "autumn"] = gam.mod.autumn$family$linkinv(p$fit + 1.96 * p$se.fit)
+
 
 
 fig2h = 
@@ -779,8 +1064,21 @@ fig2h =
   annotate(geom = "text", x = 1993, y = 0.130, label = "Forsmark, Sweden", hjust = "left", family = "spec-font", size = 20) + 
   annotate(geom = "text", x = 1993, y = 0.119, label = "Autumn", hjust = "left", family = "spec-font", size = 20) + 
   
+
   # add p value to plot
-  annotate(geom = "text", x = 1993, y = 0.015, label = "p < 0.001", hjust = "left", family = "spec-font", size = 18) + 
+  annotate(geom = "text", x = 1993, y = 0.038, 
+           label = paste("p =", p.value), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add deltaAIC value to plot
+  annotate(geom = "text", x = 1993, y = 0.025, 
+           label = bquote(Delta*AIC[C] ~ "=" ~ .(dAIC)), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add result of variable selection
+  annotate(geom = "text", x = 1993, y = 0.014, 
+           label = select, 
+           hjust = "left", family = "spec-font", size = 18, fontface = "bold") + 
   
   # fix labels
   labs(
@@ -797,8 +1095,7 @@ fig2h =
 
 
 
-
-
+#### 2i ####
 ### trapping data from Finland ###
 
 # fix values for CI
@@ -810,12 +1107,37 @@ dat = finland[finland$value == "mid",]
 dat$year = as.numeric(dat$year)
 
 # fit and check gam model
-gam.mod = gam(stick ~ s(year, k = 9), # k adjusted due to few values
+gam.mod = gam(stick ~ s(year, k = 3), # k adjusted due to few values
               data = dat,
               family = Gamma(link = "log"),
               method = "REML")
-summary(gam.mod)
 gam.check(gam.mod)
+summary(gam.mod)
+
+# save p-value
+p.value = signif(summary(gam.mod)$s.table[,4], digits = 1)
+
+# check temporal autocorrelation
+acf(residuals(gam.mod), lag.max = 2) 
+
+# fit null model without year effect
+gam.mod.null = gam(stick ~ 1,
+                   data = dat,
+                   family = Gamma(link = "log"),
+                   method = "REML")
+
+# calculate delta-AIC
+dAIC = signif(AICc(gam.mod)-AICc(gam.mod.null), digits = 2)
+
+# added penalty variable selection
+gam.mod.select = gam(stick ~ s(year, k = 9), # k adjusted due to few values
+                     data = dat,
+                     family = Gamma(link = "log"),
+                     select = T,
+                     method = "REML")
+summary(gam.mod.select)
+select = "selected"
+
 
 # make predictions from gam model
 p = predict(gam.mod, 
@@ -825,8 +1147,6 @@ p = predict(gam.mod,
 dat$pred = gam.mod$family$linkinv(p$fit)
 dat$ymin = gam.mod$family$linkinv(p$fit - 1.96 * p$se.fit)
 dat$ymax = gam.mod$family$linkinv(p$fit + 1.96 * p$se.fit)
-
-
 
 
 fig2i = 
@@ -849,8 +1169,21 @@ fig2i =
   # add label for location
   annotate(geom = "text", x = 1993, y = 8.5, label = "Tvärminne, Finland", hjust = "left", family = "spec-font", size = 20) + 
   
+
   # add p value to plot
-  annotate(geom = "text", x = 2001, y = 4.6, label = "p = 0.05", hjust = "left", family = "spec-font", size = 18) + 
+  annotate(geom = "text", x = 2001, y = 4.1, 
+           label = paste("p =", p.value), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add deltaAIC value to plot
+  annotate(geom = "text", x = 2001, y = 3.5, 
+           label = bquote(Delta*AIC[C] ~ "=" ~ .(dAIC)), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add result of variable selection
+  annotate(geom = "text", x = 2001, y = 3.0, 
+           label = select, 
+           hjust = "left", family = "spec-font", size = 18, fontface = "bold") +
   
   # fix labels
   labs(
@@ -871,22 +1204,39 @@ fig2i =
 
 latvia$stickleback[latvia$stickleback == 0] = 2e-16 # set to very small value as Gamma doesn't alow 0s
 
+#### 2j ####
 # fit and check gam model Pape
-gam.mod.pape = gam(stickleback ~ s(year),
+gam.mod.pape = gam(stickleback ~ s(year, k = 3), # gam.check suggest k too low but straight line no matter choice of k - keep at minimum
                    data = latvia[latvia$area == "Pape",],
                    family = Gamma(link = "log"),
                    method = "REML")
-summary(gam.mod.pape)
 gam.check(gam.mod.pape)
+summary(gam.mod.pape)
 
-# fit and check gam model Kolka
-gam.mod.kolka = gam(stickleback ~ s(year),
-                    data = latvia[latvia$area == "Kolka",],
-                    family = Gamma(link = "log"),
-                    method = "REML")
-summary(gam.mod.kolka)
-gam.check(gam.mod.kolka)
+# save p-value
+p.value = signif(summary(gam.mod.pape)$s.table[,4], digits = 1)
 
+# check temporal autocorrelation
+acf(residuals(gam.mod.pape), lag.max = 2) 
+# some hints of a positive correlation at 1 year, which would be sensible, but we are not making any claims of a trend here
+
+# fit null model without year effect
+gam.mod.null = gam(stickleback ~ 1,
+                   data = latvia[latvia$area == "Pape",],
+                   family = Gamma(link = "log"),
+                   method = "REML")
+
+# calculate delta-AIC
+dAIC = signif(AICc(gam.mod.pape)-AICc(gam.mod.null), digits = 2)
+
+# added penalty variable selection
+gam.mod.select = gam(stickleback ~ s(year),
+                     data = latvia[latvia$area == "Pape",],
+                     family = Gamma(link = "log"),
+                     select = T,
+                     method = "REML")
+summary(gam.mod.select)
+select = "not selected"
 
 # make predictions from gam model Pape
 p =   predict(gam.mod.pape, 
@@ -898,20 +1248,6 @@ p =   predict(gam.mod.pape,
 latvia$pred[latvia$area == "Pape"] = gam.mod.pape$family$linkinv(p$fit)
 latvia$ymin[latvia$area == "Pape"] = gam.mod.pape$family$linkinv(p$fit - 1.96 * p$se.fit)
 latvia$ymax[latvia$area == "Pape"] = gam.mod.pape$family$linkinv(p$fit + 1.96 * p$se.fit)
-
-
-
-# make predictions from gam model Kolka
-p =   predict(gam.mod.kolka, 
-              newdata =  data.frame(year = latvia$year[latvia$area == "Kolka"]),
-              type = "link",
-              se.fit = TRUE)
-
-# add predictions to df, including 95% CI
-latvia$pred[latvia$area == "Kolka"] = gam.mod.kolka$family$linkinv(p$fit)
-latvia$ymin[latvia$area == "Kolka"] = gam.mod.kolka$family$linkinv(p$fit - 1.96 * p$se.fit)
-latvia$ymax[latvia$area == "Kolka"] = gam.mod.kolka$family$linkinv(p$fit + 1.96 * p$se.fit)
-
 
 
 fig2j = 
@@ -929,10 +1265,23 @@ fig2j =
   geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) + 
   
   # add label for location
-  annotate(geom = "text", x = 2007.3, y = 0.63, label = "Pape, Latvia", hjust = "left", family = "spec-font", size = 20) + 
+  annotate(geom = "text", x = 1993, y = 0.63, label = "Pape, Latvia", hjust = "left", family = "spec-font", size = 20) + 
   
+
   # add p value to plot
-  annotate(geom = "text", x = 1993, y = 0.05, label = "p = 0.3", hjust = "left", family = "spec-font", size = 18) + 
+  annotate(geom = "text", x = 2008, y = 0.62, 
+           label = paste("p =", p.value), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add deltaAIC value to plot
+  annotate(geom = "text", x = 2008, y = 0.56, 
+           label = bquote(Delta*AIC[C] ~ "=" ~ .(dAIC)), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add result of variable selection
+  annotate(geom = "text", x = 2008, y = 0.51, 
+           label = select, 
+           hjust = "left", family = "spec-font", size = 18, fontface = "bold") +
   
   # fix labels
   labs(
@@ -945,6 +1294,52 @@ fig2j =
   # graphical settings
   theme_bw() +
   theme_sets 
+
+
+#### 2k ####
+# fit and check gam model Kolka
+gam.mod.kolka = gam(stickleback ~ s(year, k = 10),
+                    data = latvia[latvia$area == "Kolka",],
+                    family = Gamma(link = "log"),
+                    method = "REML")
+gam.check(gam.mod.kolka)
+summary(gam.mod.kolka)
+
+# save p-value
+p.value = signif(summary(gam.mod.kolka)$s.table[,4], digits = 1)
+
+# check temporal autocorrelation
+acf(residuals(gam.mod.kolka), lag.max = 2) 
+
+# fit null model without year effect
+gam.mod.null = gam(stickleback ~ 1,
+                   data = latvia[latvia$area == "Kolka",],
+                   family = Gamma(link = "log"),
+                   method = "REML")
+
+# calculate delta-AIC
+dAIC = signif(AICc(gam.mod.kolka)-AICc(gam.mod.null), digits = 2)
+
+# added penalty variable selection
+gam.mod.select = gam(stickleback ~ s(year),
+                     data = latvia[latvia$area == "Kolka",],
+                     family = Gamma(link = "log"),
+                     select = T,
+                     method = "REML")
+summary(gam.mod.select)
+select = "selected"
+
+
+# make predictions from gam model Kolka
+p =   predict(gam.mod.kolka, 
+              newdata =  data.frame(year = latvia$year[latvia$area == "Kolka"]),
+              type = "link",
+              se.fit = TRUE)
+
+# add predictions to df, including 95% CI
+latvia$pred[latvia$area == "Kolka"] = gam.mod.kolka$family$linkinv(p$fit)
+latvia$ymin[latvia$area == "Kolka"] = gam.mod.kolka$family$linkinv(p$fit - 1.96 * p$se.fit)
+latvia$ymax[latvia$area == "Kolka"] = gam.mod.kolka$family$linkinv(p$fit + 1.96 * p$se.fit)
 
 
 fig2k = 
@@ -964,8 +1359,21 @@ fig2k =
   # add label for location
   annotate(geom = "text", x = 2007, y = 2.43, label = "Kolka, Latvia", hjust = "left", family = "spec-font", size = 20) + 
 
+
   # add p value to plot
-  annotate(geom = "text", x = 1998, y = 1.9, label = "p < 0.001", hjust = "left", family = "spec-font", size = 18) + 
+  annotate(geom = "text", x = 1993, y = 0.46, 
+           label = paste("p =", p.value), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add deltaAIC value to plot
+  annotate(geom = "text", x = 1993, y = 0.22, 
+           label = bquote(Delta*AIC[C] ~ "=" ~ .(dAIC)), 
+           hjust = "left", family = "spec-font", size = 18) + 
+  
+  # add result of variable selection
+  annotate(geom = "text", x = 1993, y = 0.01, 
+           label = select, 
+           hjust = "left", family = "spec-font", size = 18, fontface = "bold") +
   
   # fix labels
   labs(
