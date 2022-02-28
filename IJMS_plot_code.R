@@ -16,23 +16,29 @@
 
 # Data for Fig 2j-k (latvia) come from beach seines during the spawning season along the Latvian coast (see Olsson et al. 2015 for details).
 
-# Data for Fig 4 (wave) come from juveniles surveys during the spawning season using underwater detonations (see Eklöf et al. 2020 for details).
+# Data for Fig 4a were extracted from Olsson (2019). Data for Fig 4b-f were obtained from https://standardgraphs.ices.dk. Data for Fig 4g were obtained from https://metadata.helcom.fi/geonetwork/srv/eng/catalog.search#/metadata/a30a77d1-12b6-47b4-a520-a54331bdbf41. Data for Fig 4h were extracted from Andersen et al. (2017) using https://apps.automeris.io/wpd/. Data for Fig 4i were obtained from doi.org/10.48670/moi-00206. 
 
-# Coastline shapefile used in Fig 1 can be found at: https://www.eea.europa.eu/data-and-maps/data/eea-coastline-for-analysis-1/gis-data/europe-coastline-shapefile
+# Data for Fig 5 (wave) come from juveniles surveys during the spawning season using underwater detonations (see Eklöf et al. 2020 for details).
 
-# ICES subdivision shapefile used in Fig 1 can be found at: https://gis.ices.dk/sf/index.html?widget=StatRec
+# Coastline shapefile used in Figs 1 and 4 can be found at: https://www.eea.europa.eu/data-and-maps/data/eea-coastline-for-analysis-1/gis-data/europe-coastline-shapefile
+
+# ICES subdivision shapefile used in Figs 1 and 4 can be found at: https://gis.ices.dk/sf/index.html?widget=StatRec
 
 
 # load required libraries
 library(cowplot) # version 1.1.1
 library(ggplot2) # version 3.3.5
 library(ggpubr) # version 0.4.0
+library(grid) # version 4.1.0
+library(jpeg) # version 0.1-9
 library(MuMIn) # version 1.43.17
 library(mgcv) # version 1.8-36
 library(RColorBrewer) # version 1.1-2
+library(raster) # version 3.4-13
 library(scales) # version 1.1.1
 library(sf) # version 1.0-2
 library(showtext) # version 0.9-4
+
 
 # add custom font
 font_add_google(name = "Raleway", family = "spec-font")
@@ -220,8 +226,8 @@ mapPLOT2 = ggplot() +
 
 
 ## initialise fig ##
-png("fig1.png", 
-    width = 17, height = 17, units = 'cm', res = 300, pointsize = 9, family = "sans")
+jpeg("fig1.jpeg", 
+    width = 17, height = 11, units = 'cm', res = 300, pointsize = 9, family = "sans")
 
 
 ## print fig
@@ -443,7 +449,7 @@ fig2b =
   geom_ribbon(aes(ymin = ymin, ymax = ymax),  alpha = .15) +
   
   # add label for SD
-  annotate(geom = "text", x = 1993.5, y = 6.97, label = "SD 27-29", hjust = "left", family = "spec-font", size = 20) + 
+  annotate(geom = "text", x = 1993.5, y = 6.97, label = "SD 27–29", hjust = "left", family = "spec-font", size = 20) + 
   
   # add p value to plot
   annotate(geom = "text", x = 1993.5, y = 3.78, 
@@ -527,7 +533,7 @@ dat$ymax = gam.mod$family$linkinv(p$fit + 1.96 * p$se.fit)
 fig2c = 
   
   ggplot(data = dat, aes(x = year, y = biomass_density_tonnes_per_km2)) +
-
+  
   # point and lines for average densities
   geom_point(col = cols[3], size = 0.75) +
   geom_line(col = cols[3], size = 0.25) +
@@ -674,9 +680,9 @@ fig2d =
   
   # adjust plot limits
   lims( x = c(1993,2020)) +
-   scale_y_continuous(breaks = c(0, 100, 200, 300, 400, 500),
-                      labels = c("0", "100", "200", "300", "400", ""),
-                      limits = c(0, 500)) +
+  scale_y_continuous(breaks = c(0, 100, 200, 300, 400, 500),
+                     labels = c("0", "100", "200", "300", "400", ""),
+                     limits = c(0, 500)) +
   
   # graphical settings
   theme_bw(base_size = 12) +
@@ -751,7 +757,7 @@ fig2e =
   # add label for SD
   annotate(geom = "text", x = 1993.5, y = 210, label = "SD 27 & 29", hjust = "left", family = "spec-font", size = 20) + 
   
-
+  
   # add p value to plot
   annotate(geom = "text", x = 1993, y = 77, 
            label = paste("p =", p.value), 
@@ -858,7 +864,7 @@ fig2f =
   # add label for SD
   annotate(geom = "text", x = 1993.5, y = 695, label = "SD 30", hjust = "left", family = "spec-font", size = 20) + 
   
-
+  
   # add p value to plot
   annotate(geom = "text", x = 1994, y = 395, 
            label = paste("p =", p.value), 
@@ -961,7 +967,7 @@ fig2g =
   annotate(geom = "text", x = 1993, y = 0.114, label = "Forsmark, Sweden", hjust = "left", family = "spec-font", size = 20) + 
   annotate(geom = "text", x = 1993, y = 0.105, label = "Spring", hjust = "left", family = "spec-font", size = 20) + 
   
-
+  
   # add p value to plot
   annotate(geom = "text", x = 1997, y = 0.036, 
            label = paste("p =", p.value), 
@@ -988,7 +994,7 @@ fig2g =
   scale_y_continuous(breaks = c(0, 0.03, 0.06, 0.09, 0.12),
                      labels = c("0", "0.03", "0.06", "0.09", ""),
                      limits = c(0, 0.12)) +
-
+  
   # graphical settings
   theme_bw(base_size = 12) +
   theme_sets 
@@ -1064,7 +1070,7 @@ fig2h =
   annotate(geom = "text", x = 1993, y = 0.130, label = "Forsmark, Sweden", hjust = "left", family = "spec-font", size = 20) + 
   annotate(geom = "text", x = 1993, y = 0.119, label = "Autumn", hjust = "left", family = "spec-font", size = 20) + 
   
-
+  
   # add p value to plot
   annotate(geom = "text", x = 1993, y = 0.038, 
            label = paste("p =", p.value), 
@@ -1169,7 +1175,7 @@ fig2i =
   # add label for location
   annotate(geom = "text", x = 1993, y = 8.5, label = "Tvärminne, Finland", hjust = "left", family = "spec-font", size = 20) + 
   
-
+  
   # add p value to plot
   annotate(geom = "text", x = 2001, y = 4.1, 
            label = paste("p =", p.value), 
@@ -1267,7 +1273,7 @@ fig2j =
   # add label for location
   annotate(geom = "text", x = 1993, y = 0.63, label = "Pape, Latvia", hjust = "left", family = "spec-font", size = 20) + 
   
-
+  
   # add p value to plot
   annotate(geom = "text", x = 2008, y = 0.62, 
            label = paste("p =", p.value), 
@@ -1358,8 +1364,8 @@ fig2k =
   
   # add label for location
   annotate(geom = "text", x = 2007, y = 2.43, label = "Kolka, Latvia", hjust = "left", family = "spec-font", size = 20) + 
-
-
+  
+  
   # add p value to plot
   annotate(geom = "text", x = 1993, y = 0.46, 
            label = paste("p =", p.value), 
@@ -1385,7 +1391,7 @@ fig2k =
   scale_y_continuous(breaks = c(0.5, 1, 1.5, 2, 2.5),
                      labels = c("0.5", "1.0", "1.5", "2.0", ""),
                      limits = c(0, 2.6)) +
-
+  
   # graphical settings
   theme_bw() +
   theme_sets 
@@ -1438,7 +1444,7 @@ bottom_row =  plot_grid(plots1[[3]], plots2[[3]], plots3[[3]],
 
 
 ## initialise fig ##
-png("fig2.png", 
+jpeg("fig2.jpeg", 
     width = 17, height = 20, units = 'cm', res = 600, pointsize = 9, family = "sans")
 
 ## print fig
@@ -1451,7 +1457,363 @@ print(plot_grid(top_row, mid_row1, mid_row2, bottom_row,
 dev.off()
 
 
+
 #### FIGURE 4 ####
+
+# polygon indicating area of increase
+stickleback_polygon = data.frame(
+  x = c(14, 19, 22, 24, 22, 17.5, 14),
+  y = c(55.75, 55.75, 59, 59.5, 63.5,63.5, 55.75)
+  
+)
+
+
+### pike and perch ###
+
+# load data
+pp = read.csv("PikePerch.csv", sep = ";")
+
+# add symbols and figures to illustrate perch trends
+pp$arrow_perch = '\u2191'; pp$perch_col = "darkgreen"
+pp$arrow_perch[pp$trend_perch == "no_trend"] = '\u2192'; pp$perch_col[pp$trend_perch == "no_trend"] = "black"
+pp$arrow_perch[pp$trend_perch == "neg"] = '\u2193'; pp$perch_col[pp$trend_perch == "neg"] = "darkred"
+pp$long_perch = pp$long
+pp$long_perch[(pp$trend_pike) != ""] = pp$long[(pp$trend_pike) != ""] - 0.23
+pp$add_circle = FALSE
+pp$add_circle[pp$location %in% c("SD31", "The Quark", "SD30", "SD29", "SD32")] = TRUE
+
+# add symbols and figures to illustrate pike trends
+pp$arrow_pike = '\u21d1'; pp$pike_col = "darkgreen"
+pp$arrow_pike[pp$trend_pike == "no_trend"] = '\u21d2'; pp$pike_col[pp$trend_pike == "no_trend"] = "black"
+pp$arrow_pike[pp$trend_pike == "neg"] = '\u21d3'; pp$pike_col[pp$trend_pike == "neg"] = "darkred"
+pp$long_pike = NA
+pp$long_pike[(pp$trend_pike) != ""] = pp$long[(pp$trend_pike) != ""] + 0.23
+
+
+# plot
+pp_plot =
+  ggplot(data = geom_coast) + # coastline
+  
+  labs(x = "Longitude", y = "Latitude", title = "a. Pike and perch population trends") + # add labels
+  
+  geom_sf(fill = "grey",  colour = "grey" , size = 0.005) + # fix colours coastline
+  
+  
+  # add ICES SDs
+  geom_sf(data = ICES_lines, fill = NA, size = 0.5, colour = "grey") + 
+  coord_sf(xlim = c(14, 30), ylim = c(53.8,65.8)) +
+  
+  annotate("text",
+           label = c("30", "32", "29", "26", "27", "28","25", "31"),
+           x = c(19.5, 26.5, 20.5, 19.5, 17.5, 20, 16.5, 23),
+           y = c(62, 59.8, 59.25, 55.2, 57.6, 57.6, 55.2, 64.75),
+           size = 18,
+           family = "spec-font"
+  ) +
+  
+  # arrows for pike and perch
+  annotate("text", x = pp$long_perch, y = pp$lat, label = sprintf(pp$arrow_perch), colour = pp$perch_col, size = 16) +
+  annotate("text", x = pp$long_pike, y = pp$lat, label = sprintf(pp$arrow_pike), colour = pp$pike_col, size = 16) +
+  
+  # indicate which data points refer to a larger area
+  annotate("text", x = pp$long_perch[pp$add_circle], y = pp$lat[pp$add_circle]-0.1, label = "_", size = 18, family = "spec-font") +
+  
+  # indicate areas of stickleback increase
+  geom_path(data = stickleback_polygon, aes(x = x, y = y), linetype = "longdash", size = 0.3, colour = "grey39") +
+  
+  # legend
+  annotate("text", x = 24.3, y = 55, label = sprintf('\u2191'), colour = "darkgreen", size = 18) +
+  annotate("text", x = 25, y = 55, label = sprintf('\u2193'), colour = "darkred", size = 18) +
+  annotate("text", x = 25.7, y = 55, label = sprintf('\u2192'), size = 18) +
+  annotate("text", x = 27.8, y = 55, label = "perch", size = 18, family = "spec-font") +
+  
+  annotate("text", x = 24.3, y = 54, label = sprintf('\u21d1'), colour = "darkgreen", size = 18) +
+  annotate("text", x = 25, y = 54, label = sprintf('\u21d3'), colour = "darkred", size = 18) +
+  annotate("text", x = 25.7, y = 54, label = sprintf('\u21d2'), size = 18) +
+  annotate("text", x = 27.4, y = 54, label = "pike", size = 18, family = "spec-font") +
+  
+  # graphical settings
+  theme_bw(base_size = 12) +
+  theme(
+    text = element_text(family = "spec-font"),
+    panel.background = element_rect(fill = "white",
+                                    colour = "white",
+                                    size = 0, linetype = "solid"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.spacing.y = unit(0.04, "cm"),
+    legend.key = element_rect(fill = NA, color = "black", size = 1.1),
+    legend.key.width = unit(0.25,"cm"),
+    legend.key.height = unit(0.05,"cm"),
+    legend.text = element_text(size = 19.3, lineheight = 0.1),
+    legend.title = element_text(size = 18, lineheight = 0.4),
+    legend.position = c(1.04, 0.275),
+    legend.background = element_rect(fill = NA, color = NA),
+    plot.title = element_text(size = 50),
+    axis.text=element_blank(),
+    axis.ticks=element_blank(),
+    axis.title=element_blank(),) 
+
+img = readJPEG("pike.jpg", native = TRUE) # add image
+img2 = readJPEG("perch.jpg", native = TRUE) # add image
+pp_plot = pp_plot +                  
+  annotation_custom(rasterGrob(img), 
+                    ymin = 63.7, ymax = 65.7, xmin = 25.5, xmax = 30.1) +
+  annotation_custom(rasterGrob(img2), 
+                    ymin = 64.5, ymax = 66.5, xmin = 25.5, xmax = 30.1)
+
+
+### offshore fish ###
+
+# load data
+ices_df = read.csv("ICES_otherSPP.csv", sep = ";")
+
+# cod plot
+cod = ggplot(data = ices_df[ices_df$species == "eastern_cod",], aes(x = year, y = SSB_mid/1000000)) +
+  geom_line(size = 0.2) +
+  geom_vline(xintercept = 2000, linetype = "dotted", size = 0.2) +
+  labs(x = "Year", y = "SSB (million tonnes)", title = "b. Cod SD 24–32") + 
+  xlim(1980, 2020) +
+  theme_bw() +
+  theme_sets +
+  theme(plot.title = element_text(size = 50))
+
+img = readJPEG("cod.jpg", native = TRUE) # add image
+cod = cod +                  
+  annotation_custom(rasterGrob(img), 
+                    ymin = 0.39, ymax = 0.47, xmin = 2008, xmax = 2020)
+
+# sprat plot
+sprat = ggplot(data = ices_df[ices_df$species == "sprat",], aes(x = year, y = SSB_mid/1000000)) +
+  geom_line(size = 0.2) +
+  geom_vline(xintercept = 2000, linetype = "dotted", size = 0.2) +
+  labs(x = "Year", y = "SSB (million tonnes)", title = "c. Sprat whole Baltic Sea") + 
+  xlim(1980, 2020) +
+  theme_bw() +
+  theme_sets +
+  theme(plot.title = element_text(size = 50))
+
+img = readJPEG("sprat.jpg", native = TRUE) # add image
+sprat = sprat +                  
+  annotation_custom(rasterGrob(img), 
+                    ymin = 1.70, ymax = 1.85, xmin = 2010, xmax = 2020)
+
+
+# herring Bothnian Sea and Bothnian Bay
+herring_bothnia = ggplot(data = ices_df[ices_df$species == "herring_Bothnia",], aes(x = year, y = SSB_mid/1000000)) +
+  geom_line(size = 0.2) +
+  geom_vline(xintercept = 2000, linetype = "dotted", size = 0.2) +
+  labs(x = "Year", y = "SSB (million tonnes)", title = "d. Herring SD 30–31") + 
+  xlim(1980, 2020) +
+  theme_bw() +
+  theme_sets +
+  theme(plot.title = element_text(size = 50))
+
+img = readJPEG("herring.jpg", native = TRUE) # add image
+herring_bothnia = herring_bothnia +
+  annotation_custom(rasterGrob(img), 
+                               ymin = 1.20, ymax = 1.32, xmin = 2010, xmax = 2020)
+
+
+# herring Baltic Proper
+herring_25_29 = ggplot(data = ices_df[ices_df$species == "herring_25_29",], aes(x = year, y = SSB_mid/1000000)) +
+  geom_line(size = 0.2) +
+  geom_vline(xintercept = 2000, linetype = "dotted", size = 0.2) +
+  labs(x = "Year", y = "SSB (million tonnes)", title = "e. Herring SD 25–29 & 32") + 
+  xlim(1980, 2020) +
+  theme_bw() +
+  theme_sets +
+  theme(plot.title = element_text(size = 50))
+
+img = readJPEG("herring.jpg", native = TRUE) # add image
+herring_25_29 = herring_25_29 +                  
+  annotation_custom(rasterGrob(img), 
+                    ymin = 1.65, ymax = 1.90, xmin = 2010, xmax = 2020)
+
+
+# herring Gulf of Riga
+herring_riga = ggplot(data = ices_df[ices_df$species == "herring_Riga",], aes(x = year, y = SSB_mid/1000000)) +
+  geom_line(size = 0.2) +
+  labs(x = "Year", y = "SSB (million tonnes)", title = "f. Herring Gulf of Riga") + 
+  xlim(1980, 2020) +
+  theme_bw() +
+  theme_sets +
+  theme(plot.title = element_text(size = 50))
+
+img = readJPEG("herring.jpg", native = TRUE) # add image
+herring_riga = herring_riga +                  
+  annotation_custom(rasterGrob(img), 
+                    ymin = 0.155, ymax = 0.175, xmin = 2010, xmax = 2020)
+
+
+### eutrophication ###
+
+# colours to indicate eutrophication status
+eu_colours = c("#238b45", "#ffeda0", "#fd8d3c", "#bd0026")
+
+# load shapefile with eutrophication status
+eutrophication_status = st_read("eutrophication_map/IntegratedEutrophicationAssessment2018.shp")
+
+#
+eutrophication_status = st_transform(eutrophication_status, CRS("+proj=longlat +datum=WGS84 +no_defs"))
+
+# subset to relevant area
+eu_sub = subset(eutrophication_status, STATUS %in% c("1.0-1.5", "1.5-2.0", "0.5-1", ">2.0"))
+
+# fix order of levels
+eu_sub$STATUS = factor(eu_sub$STATUS, levels = c( "0.5-1", "1.0-1.5", "1.5-2.0", ">2.0"))
+
+# plot of eutrophication status
+eu_map = 
+  
+  # plot polygon data on status
+  ggplot(eu_sub) + 
+  geom_sf(aes(fill = STATUS), size = 0.1) +
+  scale_fill_manual(values = eu_colours, name =  "", labels = c("", "", "", "")) +
+  
+  # indicate areas of stickleback increase
+  geom_path(data = stickleback_polygon, aes(x = x, y = y), linetype = "longdash", size = 0.3, colour = "grey39") +
+  
+  # add labels
+  labs(title = "g. Eutrophication status") +
+  
+  # custom-made legend labels
+  annotate("text", x = 10.8, y = 66, label = "Status", size = 16, family = "spec-font") +
+  annotate("text", x = 11.7, y = 64.95, label = "0.5-1 (good)", size = 13, family = "spec-font", hjust = 0) +
+  annotate("text", x = 11.7, y = 63.95, label = "1-1.5 (moderate)", size = 13, family = "spec-font", hjust = 0) +
+  annotate("text", x = 11.7, y = 62.95, label = "1.5-2 (poor)", size = 13, family = "spec-font", hjust = 0) +
+  annotate("text", x = 11.7, y = 61.95, label = ">2.0 (bad)", size = 13, family = "spec-font", hjust = 0) +
+
+  
+  # graphical settings
+  theme_bw(base_size = 12) +
+  theme(
+    text = element_text(family = "spec-font"),
+    panel.background = element_rect(fill = "white",
+                                    colour = "white",
+                                    size = 0, linetype = "solid"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.spacing.y = unit(0.04, "cm"),
+    legend.key.width = unit(0.45,"cm"),
+    legend.key.height = unit(0.45,"cm"),
+    legend.position = c(0.1, 0.8),
+    legend.background = element_rect(fill = NA, color = NA),
+    plot.title = element_text(size = 50),
+    axis.text=element_blank(),
+    axis.ticks=element_blank(),
+    axis.title=element_blank()) 
+
+
+# load trend data
+eu_trend_df = read.csv("eutroph_trend.csv", sep = ";")
+
+# round extracted year values 
+eu_trend_df$year = round(eu_trend_df$year)
+
+# eutrophication trend plot
+eu_trend = ggplot(data = eu_trend_df, aes(x = year, y = status)) +
+  
+  # background areas with same status scale as map
+  annotate("rect", xmin = 1980, xmax = 2020, ymin = 1, ymax = 1.5, alpha = 1, fill = eu_colours[2]) +
+  annotate("rect", xmin = 1980, xmax = 2020, ymin = 1.5, ymax = 2, alpha = 1, fill = eu_colours[3]) +
+  annotate("rect", xmin = 1980, xmax = 2020, ymin = 2, ymax = 3, alpha = 1, fill = eu_colours[4]) +
+  
+  geom_line(size = 0.2) +
+  geom_vline(xintercept = 2000, linetype = "dotted", size = 0.2) +
+  labs(x = "Year", y = "Eutrophication status", title = "h. Trend eutrophication status") + 
+  xlim(1980, 2020) +
+  ylim(1, 3) +
+  theme_bw() +
+  theme_sets +
+  theme(plot.title = element_text(size = 50))
+
+
+### temperature ###
+
+# load trend data
+temp_trend = brick("baltic_omi_tempsal_sst_trend/baltic_omi_tempsal_sst_trend_2020_P20210903_R19932014.nc", 
+      varname="sst_trend")
+
+# crop to relevant area and values
+temp_trend = crop(temp_trend, extent(14, 32, 54, 66))
+values(temp_trend)[values(temp_trend) <= 0] = NaN
+
+# convert to data frame
+temp_trend_df = data.frame(rasterToPoints(temp_trend, spatial = TRUE))
+
+# plot
+temp_trend = 
+  ggplot() +
+  geom_raster(data = temp_trend_df , aes(x = x, y = y, fill = layer/28)) +
+  scale_fill_gradientn(colours=c(brewer.pal(9, "YlOrRd")), name = "") +
+  
+  # indicate areas of stickleback increase
+  geom_path(data = stickleback_polygon, aes(x = x, y = y), linetype = "longdash", size = 0.3, colour = "grey39") +
+  
+  # add labels
+  labs(title = "i. SST trend 1993–2020") +
+  
+  xlim(10,30) +
+  
+  # custom-made legend labels
+  annotate("text", x = 12, y = 66, label = "\u00B0C/year", size = 16, family = "spec-font") +
+  annotate("text", x = 12, y = 65.5, label = "0.08", size = 13, family = "spec-font", hjust = 0) +
+  annotate("text", x = 12, y = 63.9, label = "0.06", size = 13, family = "spec-font", hjust = 0) +
+  annotate("text", x = 12, y = 62.3, label = "0.04", size = 13, family = "spec-font", hjust = 0) +
+  annotate("text", x = 12, y = 60.7, label = "0.02", size = 13, family = "spec-font", hjust = 0) +
+
+  # graphical settings
+  theme_bw(base_size = 12) +
+  theme(
+    text = element_text(family = "spec-font"),
+    panel.background = element_rect(fill = "white",
+                                    colour = "white",
+                                    size = 0, linetype = "solid"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.text = element_blank(),
+    legend.key.width = unit(0.25,"cm"),
+    legend.position = c(0.107, 0.72),
+    legend.background = element_rect(fill = NA, color = NA),
+    plot.title = element_text(size = 50),
+    axis.text=element_blank(),
+    axis.ticks=element_blank(),
+    axis.title=element_blank()) 
+
+
+### arrange and save plots ###
+
+# order plots and fix panel settings for row 1
+plots1 = align_plots(cod, sprat,  align = 'v', axis = 'l')
+col1 = plot_grid(plots1[[1]], plots1[[2]], ncol = 1)
+plots2 = align_plots(herring_bothnia, herring_25_29, herring_riga, align = 'v', axis = 'l')
+col2 = plot_grid(plots2[[1]], plots2[[2]], plots2[[3]], ncol = 1)
+
+
+# collect plots for row 1
+row1 = 
+plot_grid(pp_plot, col1,  col2, 
+          
+          nrow = 1)
+
+
+# collect plots for row 2
+row2 = plot_grid(eu_map, eu_trend, temp_trend, nrow = 1)
+
+## initialise fig ##
+jpeg("fig4.jpeg", 
+    width = 17, height = 18, units = 'cm', res = 600, pointsize = 9, family = "sans")
+
+## print fig ##
+plot_grid(row1, row2, rel_heights = c(3,2), ncol = 1)
+
+## close fig ##
+dev.off()
+
+
+
+#### FIGURE 5 ####
 
 wave = read.csv("SticklebackWave.csv", sep = ";") # detonation data from Eklöf et al
 
@@ -1556,7 +1918,7 @@ wave_plot =
 
 
 ## initialise fig ##
-png("fig4.png", 
+jpeg("fig5.jpeg", 
     width = 8.5, height = 17, units = 'cm', res = 300, pointsize = 12, family = "sans")
 
 ## print fig
